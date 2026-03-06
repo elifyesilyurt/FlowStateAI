@@ -1,4 +1,4 @@
-import 'dart:async'; // Zamanlayıcı (Timer) için gerekli
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 class FocusPage extends StatefulWidget {
@@ -9,12 +9,10 @@ class FocusPage extends StatefulWidget {
 }
 
 class _FocusPageState extends State<FocusPage> {
-  // --- DEĞİŞKENLERİMİZ ---
-  int _secondsRemaining = 1500; // 25 dakika (25 * 60 saniye)
+  int _secondsRemaining = 1500; // 25 Dakika
   Timer? _timer;
   bool _isTimerRunning = false;
 
-  // --- SAYAÇ MANTIĞI ---
   void _startTimer() {
     setState(() {
       _isTimerRunning = true;
@@ -34,7 +32,20 @@ class _FocusPageState extends State<FocusPage> {
     });
   }
 
-  // Saniyeyi Dakika:Saniye formatına çeviren yardımcı fonksiyon
+  void _pauseTimer() {
+    _timer?.cancel();
+    setState(() {
+      _isTimerRunning = false;
+    });
+  }
+
+  void _resetTimer() {
+    _pauseTimer();
+    setState(() {
+      _secondsRemaining = 1500;
+    });
+  }
+
   String _formatTime(int seconds) {
     int minutes = seconds ~/ 60;
     int remainingSeconds = seconds % 60;
@@ -52,7 +63,7 @@ class _FocusPageState extends State<FocusPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Bilişsel yükü temsil eden ilerleme çubuğu (TÜBİTAK Dokunuşu)
+            // İlerleme Çubuğu (TÜBİTAK Proje Temeli)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40),
               child: LinearProgressIndicator(
@@ -70,13 +81,32 @@ class _FocusPageState extends State<FocusPage> {
               style: const TextStyle(fontSize: 60, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 40),
-            ElevatedButton(
-              onPressed: _isTimerRunning ? null : _startTimer,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-              ),
-              child: const Text('BAŞLAT', style: TextStyle(color: Colors.white)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: _isTimerRunning ? _pauseTimer : _startTimer,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _isTimerRunning ? Colors.amber : Colors.green,
+                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                  ),
+                  child: Text(_isTimerRunning ? 'DURAKLAT' : 'BAŞLAT', style: const TextStyle(color: Colors.white)),
+                ),
+                const SizedBox(width: 20),
+                ElevatedButton(
+                  onPressed: _resetTimer,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey,
+                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                  ),
+                  child: const Text('SIFIRLA', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 40),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Ana Sayfaya Dön', style: TextStyle(color: Colors.grey)),
             ),
           ],
         ),
@@ -86,7 +116,7 @@ class _FocusPageState extends State<FocusPage> {
 
   @override
   void dispose() {
-    _timer?.cancel(); // Sayfa kapanınca sayacı durdur ki hafıza dolmasın
+    _timer?.cancel();
     super.dispose();
   }
 }
