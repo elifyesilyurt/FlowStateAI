@@ -14,12 +14,26 @@ class FlowStateAI extends StatelessWidget {
       home: Scaffold(
         appBar: AppBar(
           title: const Text('FlowStateAI'),
-          backgroundColor: Colors.deepPurple, // Senin sevdiğin mor tonları
+          backgroundColor: Colors.deepPurple,
         ),
-        body: const Center(
-          child: Text(
-            'Odaklanmaya Hazır Mısın Elif?',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        // ESKİ BODY YERİNE BURAYI KOMPLE YAPIŞTIR
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'Odaklanmaya Hazır Mısın Elif?',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20), // Yazı ile buton arası boşluk
+              ElevatedButton(
+                onPressed: () {
+                  // Butona basınca terminalde bu yazıyı göreceksin
+                  print("Odaklanma Başladı!");
+                },
+                child: const Text('Odaklanmayı Başlat'),
+              ),
+            ],
           ),
         ),
       ),
