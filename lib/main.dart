@@ -1,3 +1,4 @@
+import 'focus_page.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -9,32 +10,42 @@ class FlowStateAI extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('FlowStateAI'),
-          backgroundColor: Colors.deepPurple,
-        ),
-        // ESKİ BODY YERİNE BURAYI KOMPLE YAPIŞTIR
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                'Odaklanmaya Hazır Mısın Elif?',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20), // Yazı ile buton arası boşluk
-              ElevatedButton(
-                onPressed: () {
-                  // Butona basınca terminalde bu yazıyı göreceksin
-                  print("Odaklanma Başladı!");
-                },
-                child: const Text('Odaklanmayı Başlat'),
-              ),
-            ],
-          ),
+      home: HomePage(), // Ana içeriği aşağıya taşıdık
+    );
+  }
+}
+
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('FlowStateAI'),
+        backgroundColor: Colors.deepPurple,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Odaklanmaya Hazır Mısın Elif?',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const FocusPage()),
+                );
+              },
+              child: const Text('Odaklanmayı Başlat'),
+            ),
+          ],
         ),
       ),
     );
