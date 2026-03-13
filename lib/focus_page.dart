@@ -9,41 +9,35 @@ class FocusPage extends StatefulWidget {
 }
 
 class _FocusPageState extends State<FocusPage> {
-  int _secondsRemaining = 1500; // 25 Dakika
+  // --- Orta Dünya Renk Paleti ---
+  final Color parchmentColor = const Color(0xFFF4E4BC); 
+  final Color gondorBlue = const Color(0xFF203354);
+  final Color mordorFire = const Color(0xFFE65100);
+
+  int _secondsRemaining = 1500; 
   Timer? _timer;
   bool _isTimerRunning = false;
 
   void _startTimer() {
-    setState(() {
-      _isTimerRunning = true;
-    });
-    
+    setState(() { _isTimerRunning = true; });
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsRemaining > 0) {
-        setState(() {
-          _secondsRemaining--;
-        });
+        setState(() { _secondsRemaining--; });
       } else {
         _timer?.cancel();
-        setState(() {
-          _isTimerRunning = false;
-        });
+        setState(() { _isTimerRunning = false; });
       }
     });
   }
 
   void _pauseTimer() {
     _timer?.cancel();
-    setState(() {
-      _isTimerRunning = false;
-    });
+    setState(() { _isTimerRunning = false; });
   }
 
   void _resetTimer() {
     _pauseTimer();
-    setState(() {
-      _secondsRemaining = 1500;
-    });
+    setState(() { _secondsRemaining = 1500; });
   }
 
   String _formatTime(int seconds) {
@@ -55,30 +49,49 @@ class _FocusPageState extends State<FocusPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: parchmentColor, 
       appBar: AppBar(
-        title: const Text('Odaklanma Seansı'),
-        backgroundColor: Colors.deepOrange,
+        title: const Text('Mordor Yolculuğu'),
+        backgroundColor: Colors.brown[900],
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // İlerleme Çubuğu (TÜBİTAK Proje Temeli)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40),
-              child: LinearProgressIndicator(
-                value: 1 - (_secondsRemaining / 1500),
-                backgroundColor: Colors.grey[300],
-                color: Colors.deepOrange,
-                minHeight: 10,
+              child: Column(
+                children: [
+                  LinearProgressIndicator(
+                    value: 1 - (_secondsRemaining / 1500),
+                    backgroundColor: Colors.brown[200],
+                    color: mordorFire,
+                    minHeight: 8,
+                  ),
+                  const SizedBox(height: 8),
+                  const Text("Yol Devam Ediyor...", style: TextStyle(fontStyle: FontStyle.italic, color: Colors.brown)),
+                ],
               ),
             ),
             const SizedBox(height: 50),
-            const Icon(Icons.psychology, size: 80, color: Colors.deepOrange),
+            Icon(
+              _isTimerRunning ? Icons.terrain : Icons.wb_sunny, 
+              size: 100, 
+              color: Colors.brown[700]
+            ),
             const SizedBox(height: 20),
             Text(
               _formatTime(_secondsRemaining),
-              style: const TextStyle(fontSize: 60, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 70, 
+                fontWeight: FontWeight.bold, 
+                color: Colors.brown[900],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              _isTimerRunning ? "Yüzük Taşıyıcısı Odaklanıyor..." : "Mola Ver, Dostum (Mellon)",
+              style: TextStyle(color: Colors.brown[600], fontSize: 16),
             ),
             const SizedBox(height: 40),
             Row(
@@ -87,26 +100,21 @@ class _FocusPageState extends State<FocusPage> {
                 ElevatedButton(
                   onPressed: _isTimerRunning ? _pauseTimer : _startTimer,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _isTimerRunning ? Colors.amber : Colors.green,
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                    backgroundColor: _isTimerRunning ? Colors.amber[800] : Colors.green[900],
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                   ),
-                  child: Text(_isTimerRunning ? 'DURAKLAT' : 'BAŞLAT', style: const TextStyle(color: Colors.white)),
+                  child: Text(_isTimerRunning ? 'YOLU DURDUR' : 'YOLCULUĞA BAŞLA'),
                 ),
-                const SizedBox(width: 20),
+                const SizedBox(width: 10),
                 ElevatedButton(
                   onPressed: _resetTimer,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey,
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                    backgroundColor: Colors.brown[400],
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                   ),
-                  child: const Text('SIFIRLA', style: TextStyle(color: Colors.white)),
+                  child: const Text('SHIRE\'A DÖN'),
                 ),
               ],
-            ),
-            const SizedBox(height: 40),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Ana Sayfaya Dön', style: TextStyle(color: Colors.grey)),
             ),
           ],
         ),
