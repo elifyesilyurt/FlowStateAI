@@ -12,31 +12,45 @@ class FocusPage extends StatefulWidget {
 class _FocusPageState extends State<FocusPage> {
   // --- Orta Dünya Renk Paleti ---
   final Color parchmentColor = const Color(0xFFF4E4BC); 
-  final Color gondorBlue = const Color(0xFF203354);
   final Color mordorFire = const Color(0xFFE65100);
 
-  int _secondsRemaining = 1500; // Kalan süre
-  int _initialSeconds = 1500;   // Seans başladığındaki toplam süre (Hesaplama için)
+  int _secondsRemaining = 1500; // 25 dakika
+  int _initialSeconds = 1500;   // Seans başladığındaki saniye (Hesaplama için)
   Timer? _timer;
   bool _isTimerRunning = false;
 
-  // Veriyi saniye bazlı hesaplayıp kaydeden gelişmiş fonksiyon
+  // --- LOGLAMA VE HASSAS VERİ KAYDI ---
   Future<void> _saveFocusTime(int secondsWorked) async {
-    // 10 saniyeden az çalışıldıysa kaydetme (opsiyonel limit)
-    if (secondsWorked < 10) return;
+    if (secondsWorked < 1) return; // 1 saniyeden az ise kaydetme
 
     final prefs = await SharedPreferences.getInstance();
-    int currentTotalMinutes = prefs.getInt('total_minutes') ?? 0;
+
+    // 1. Toplam Saniyeyi Güncelle (Dakika yerine saniye tutarak hassasiyeti artırdık)
+    int currentTotalSeconds = prefs.getInt('total_seconds') ?? 0;
+    await prefs.setInt('total_seconds', currentTotalSeconds + secondsWorked);
     
-    // Saniyeyi dakikaya çeviriyoruz (en az 1 dakikaya yuvarlar)
-    int minutesToAdd = (secondsWorked / 60).ceil(); 
+    // 2. Yolculuk Günlüğü (Log) Oluştur
+    List<String> logs = prefs.getStringList('focus_logs') ?? [];
     
-    await prefs.setInt('total_minutes', currentTotalMinutes + minutesToAdd);
+    // Şu anki saat bilgisini al (Örn: 14:30)
+    DateTime now = DateTime.now();
+    String timestamp = "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
     
+    // Saniyeyi dakika/saniye formatına çevir
+    int mins = secondsWorked ~/ 60;
+    int secs = secondsWorked % 60;
+    String durationText = mins > 0 ? "$mins dk $secs sn" : "$secs sn";
+
+    // Yeni kaydı listenin başına ekle (en son seans en üstte görünsün)
+    logs.insert(0, "$timestamp - $durationText odaklanıldı.");
+    
+    // Listeyi kaydet
+    await prefs.setStringList('focus_logs', logs);
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("$minutesToAdd dakika Mordor yolunda kaydedildi!"),
+          content: Text("Macerada $durationText kaydedildi!"),
           backgroundColor: mordorFire,
           duration: const Duration(seconds: 2),
         ),
@@ -45,7 +59,7 @@ class _FocusPageState extends State<FocusPage> {
   }
 
   void _startTimer() {
-    // Başladığımız anki süreyi hafızaya alalım (hesaplama için başlangıç noktası)
+    // Başladığımız anki kalan süreyi referans alalım
     _initialSeconds = _secondsRemaining; 
     
     setState(() { _isTimerRunning = true; });
@@ -55,8 +69,7 @@ class _FocusPageState extends State<FocusPage> {
       } else {
         _timer?.cancel();
         setState(() { _isTimerRunning = false; });
-        // Seans tam biterse tüm süreyi kaydet
-        _saveFocusTime(_initialSeconds);
+        _saveFocusTime(_initialSeconds); // Seans tam biterse tüm süreyi kaydet
       }
     });
   }
@@ -64,7 +77,7 @@ class _FocusPageState extends State<FocusPage> {
   void _pauseTimer() {
     _timer?.cancel();
     
-    // ÇALIŞILAN SÜRE HESABI: Başlangıç süresinden kalan süreyi çıkar
+    // HESAPLAMA: Başlangıçtaki kalan saniye - Şu anki kalan saniye = Harcanan emek
     int worked = _initialSeconds - _secondsRemaining;
     
     if (worked > 0) {
@@ -75,8 +88,11 @@ class _FocusPageState extends State<FocusPage> {
   }
 
   void _resetTimer() {
-    _pauseTimer(); // Önce çalışılan süreyi kaydeder
-    setState(() { _secondsRemaining = 1500; });
+    _pauseTimer(); // Resetlemeden önce mevcut ilerlemeyi günlüğe yaz
+    setState(() { 
+      _secondsRemaining = 1500; 
+      _initialSeconds = 1500;
+    });
   }
 
   String _formatTime(int seconds) {
