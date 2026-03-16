@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'focus_page.dart';
+import 'services/json_loader.dart';
+import 'models/session_summary.dart'; // Model sınıfımızı ekledik
 
 void main() => runApp(const FlowStateAI());
 
@@ -27,19 +29,31 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   int _totalSeconds = 0;
   List<String> _logs = [];
+  
+  // JSON verisini Model tipinde tutan Future
+  late Future<SessionSummary> _sessionFuture;
 
   @override
   void initState() {
     super.initState();
-    _loadStats();
+    _loadLocalData();
+    // JSON yükleme işlemini bir Future olarak başlatıyoruz
+    _sessionFuture = _loadSessionData();
   }
 
-  Future<void> _loadStats() async {
+  // SharedPreferences verilerini yükle
+  Future<void> _loadLocalData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _totalSeconds = prefs.getInt('total_seconds') ?? 0;
       _logs = prefs.getStringList('focus_logs') ?? [];
     });
+  }
+
+  // JSON'dan veriyi çekip Model sınıfına dönüştüren fonksiyon
+  Future<SessionSummary> _loadSessionData() async {
+    final jsonMap = await JsonLoader.loadSessionSummary();
+    return SessionSummary.fromJson(jsonMap); // Model sınıfını kullanıyoruz
   }
 
   String _getUserTitle() {
@@ -50,12 +64,6 @@ class _DashboardPageState extends State<DashboardPage> {
     return "Ak Büyücü";
   }
 
-  String _formatTotalTime(int totalSeconds) {
-    int minutes = totalSeconds ~/ 60;
-    int seconds = totalSeconds % 60;
-    return "$minutes dk $seconds sn";
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,16 +72,6 @@ class _DashboardPageState extends State<DashboardPage> {
         title: const Text("Yolculuk Paneli", style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.brown[900],
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.delete_sweep, color: Colors.white70),
-            onPressed: () async {
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.remove('focus_logs');
-              _loadStats();
-            },
-          )
-        ],
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -85,38 +83,62 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
         child: Column(
           children: [
-            const SizedBox(height: 20),
-            Text("Hoş geldin, Elif", style: TextStyle(fontSize: 26, color: Colors.brown[900], fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Text(_getUserTitle(), style: TextStyle(fontSize: 18, color: Colors.orange[900], fontStyle: FontStyle.italic)),
-            const SizedBox(height: 20),
+            const SizedBox(height: 15),
+            Text("Hoş geldin, Elif", style: TextStyle(fontSize: 24, color: Colors.brown[900], fontWeight: FontWeight.bold)),
+            Text(_getUserTitle(), style: TextStyle(fontSize: 16, color: Colors.orange[900], fontStyle: FontStyle.italic)),
+            const SizedBox(height: 15),
             
-            // Veri Kartı - Güncel Renk Kullanımı (withValues)
-            Container(
-              width: MediaQuery.of(context).size.width * 0.85,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(25),
-                border: Border.all(color: Colors.brown.withValues(alpha: 0.3)),
-                boxShadow: [
-                  BoxShadow(color: Colors.brown.withValues(alpha: 0.1), blurRadius: 20, offset: const Offset(0, 10))
-                ],
-              ),
-              child: Column(
-                children: [
-                  Text("TOPLAM YOLCULUK SÜRESİ", style: TextStyle(letterSpacing: 1.5, color: Colors.brown[700], fontSize: 10)),
-                  const SizedBox(height: 10),
-                  Text(_formatTotalTime(_totalSeconds), style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.brown[900])),
-                ],
-              ),
+            // --- FUTUREBUILDER ALANI ---
+            FutureBuilder<SessionSummary>(
+              future: _sessionFuture,
+              builder: (context, snapshot) {
+                // DURUM 1: Veri hala yükleniyor (Loading)
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: Column(
+                      children: [
+                        CircularProgressIndicator(color: Colors.brown),
+                        SizedBox(height: 10),
+                        Text("Veriler Yükleniyor..."), // Plandaki Loading durumu
+                      ],
+                    ),
+                  );
+                } 
+                // DURUM 2: Bir hata oluştu (Error)
+                else if (snapshot.hasError) {
+                  return const Center(child: Text("Veri okunamadı!")); // Plandaki Error durumu
+                } 
+                // DURUM 3: Başarıyla yüklendi (Success)
+                else if (snapshot.hasData) {
+                  final data = snapshot.data!;
+                  return Column(
+                    children: [
+                      _buildStatCard("TOPLAM YOLCULUK SÜRESİ", "${data.durationSeconds} sn", Icons.timer),
+                      const SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Row(
+                          children: [
+                            Expanded(child: _buildMiniCard("Etkinlik", "${data.totalEvents}", Icons.bolt)),
+                            const SizedBox(width: 10),
+                            Expanded(child: _buildMiniCard("Yoğunluk", "${data.eventDensity}", Icons.analytics)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                }
+                return const SizedBox();
+              },
             ),
             
-            const SizedBox(height: 30),
+            const SizedBox(height: 20),
+            
             ElevatedButton.icon(
               onPressed: () async {
                 await Navigator.push(context, MaterialPageRoute(builder: (context) => const FocusPage()));
-                _loadStats();
+                _loadLocalData();
+                setState(() { _sessionFuture = _loadSessionData(); });
               },
               icon: const Icon(Icons.map_sharp, color: Colors.white),
               label: const Text("MACERAYA DEVAM ET", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -126,9 +148,10 @@ class _DashboardPageState extends State<DashboardPage> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
               ),
             ),
-            const SizedBox(height: 30),
+            
+            const SizedBox(height: 20),
             const Text("📜 Yolculuk Günlüğü", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.brown)),
-            const SizedBox(height: 10),
+            
             Expanded(
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -149,6 +172,44 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String title, String value, IconData icon) {
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.85,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.brown.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: Colors.brown),
+          Text(title, style: const TextStyle(letterSpacing: 1.2, fontSize: 10, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 5),
+          Text(value, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.brown[900])),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMiniCard(String title, String value, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.brown.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 18, color: Colors.brown[700]),
+          Text(title, style: const TextStyle(fontSize: 10)),
+          Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        ],
       ),
     );
   }

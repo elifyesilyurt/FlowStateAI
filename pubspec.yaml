@@ -20,6 +20,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  # İleride ekleyeceğimiz görseller için burayı hazır bıraktım:
-  # assets:
-  #   - assets/
+  assets:
+    - assets/sample/frontend_test_summary.json
