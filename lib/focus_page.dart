@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // 1. Adım: Hafıza paketi eklendi
+import 'package:shared_preferences/shared_preferences.dart';
 
 class FocusPage extends StatefulWidget {
   const FocusPage({super.key});
@@ -15,20 +15,28 @@ class _FocusPageState extends State<FocusPage> {
   final Color gondorBlue = const Color(0xFF203354);
   final Color mordorFire = const Color(0xFFE65100);
 
-  int _secondsRemaining = 1500; // 25 dakika
+  int _secondsRemaining = 1500; // Kalan süre
+  int _initialSeconds = 1500;   // Seans başladığındaki toplam süre (Hesaplama için)
   Timer? _timer;
   bool _isTimerRunning = false;
 
-  // 2. Adım: Veriyi hafızaya kaydeden fonksiyon eklendi
-  Future<void> _saveFocusTime(int minutes) async {
+  // Veriyi saniye bazlı hesaplayıp kaydeden gelişmiş fonksiyon
+  Future<void> _saveFocusTime(int secondsWorked) async {
+    // 10 saniyeden az çalışıldıysa kaydetme (opsiyonel limit)
+    if (secondsWorked < 10) return;
+
     final prefs = await SharedPreferences.getInstance();
-    int currentTotal = prefs.getInt('total_minutes') ?? 0;
-    await prefs.setInt('total_minutes', currentTotal + minutes);
+    int currentTotalMinutes = prefs.getInt('total_minutes') ?? 0;
+    
+    // Saniyeyi dakikaya çeviriyoruz (en az 1 dakikaya yuvarlar)
+    int minutesToAdd = (secondsWorked / 60).ceil(); 
+    
+    await prefs.setInt('total_minutes', currentTotalMinutes + minutesToAdd);
     
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("$minutes dakika Mordor yolunda kaydedildi!"),
+          content: Text("$minutesToAdd dakika Mordor yolunda kaydedildi!"),
           backgroundColor: mordorFire,
           duration: const Duration(seconds: 2),
         ),
@@ -37,6 +45,9 @@ class _FocusPageState extends State<FocusPage> {
   }
 
   void _startTimer() {
+    // Başladığımız anki süreyi hafızaya alalım (hesaplama için başlangıç noktası)
+    _initialSeconds = _secondsRemaining; 
+    
     setState(() { _isTimerRunning = true; });
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsRemaining > 0) {
@@ -44,19 +55,27 @@ class _FocusPageState extends State<FocusPage> {
       } else {
         _timer?.cancel();
         setState(() { _isTimerRunning = false; });
-        // 3. Adım: Süre bittiğinde otomatik kaydet!
-        _saveFocusTime(25);
+        // Seans tam biterse tüm süreyi kaydet
+        _saveFocusTime(_initialSeconds);
       }
     });
   }
 
   void _pauseTimer() {
     _timer?.cancel();
+    
+    // ÇALIŞILAN SÜRE HESABI: Başlangıç süresinden kalan süreyi çıkar
+    int worked = _initialSeconds - _secondsRemaining;
+    
+    if (worked > 0) {
+      _saveFocusTime(worked);
+    }
+    
     setState(() { _isTimerRunning = false; });
   }
 
   void _resetTimer() {
-    _pauseTimer();
+    _pauseTimer(); // Önce çalışılan süreyi kaydeder
     setState(() { _secondsRemaining = 1500; });
   }
 
