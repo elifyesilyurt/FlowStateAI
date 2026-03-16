@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // 1. Adım: Hafıza paketi eklendi
 
 class FocusPage extends StatefulWidget {
   const FocusPage({super.key});
@@ -14,9 +15,26 @@ class _FocusPageState extends State<FocusPage> {
   final Color gondorBlue = const Color(0xFF203354);
   final Color mordorFire = const Color(0xFFE65100);
 
-  int _secondsRemaining = 1500; 
+  int _secondsRemaining = 1500; // 25 dakika
   Timer? _timer;
   bool _isTimerRunning = false;
+
+  // 2. Adım: Veriyi hafızaya kaydeden fonksiyon eklendi
+  Future<void> _saveFocusTime(int minutes) async {
+    final prefs = await SharedPreferences.getInstance();
+    int currentTotal = prefs.getInt('total_minutes') ?? 0;
+    await prefs.setInt('total_minutes', currentTotal + minutes);
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("$minutes dakika Mordor yolunda kaydedildi!"),
+          backgroundColor: mordorFire,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
 
   void _startTimer() {
     setState(() { _isTimerRunning = true; });
@@ -26,6 +44,8 @@ class _FocusPageState extends State<FocusPage> {
       } else {
         _timer?.cancel();
         setState(() { _isTimerRunning = false; });
+        // 3. Adım: Süre bittiğinde otomatik kaydet!
+        _saveFocusTime(25);
       }
     });
   }

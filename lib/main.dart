@@ -29,6 +29,7 @@ class _DashboardPageState extends State<DashboardPage> {
     _loadStats();
   }
 
+  // Veriyi diskten okuyan fonksiyon
   Future<void> _loadStats() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -54,10 +55,21 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
             ),
             const SizedBox(height: 40),
+            
+            // --- REVIZE EDILEN BUTON KISMI BURASI ---
             ElevatedButton(
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const FocusPage())),
+              onPressed: () async {
+                // FocusPage'i aç ve kullanıcının geri dönmesini bekle
+                await Navigator.push(
+                  context, 
+                  MaterialPageRoute(builder: (context) => const FocusPage())
+                );
+                // Kullanıcı geri döndüğü anda (pop yapıldığında) veriyi tekrar oku
+                _loadStats();
+              },
               child: const Text("ODAKLANMAYA BAŞLA"),
             ),
+            // ----------------------------------------
           ],
         ),
       ),
