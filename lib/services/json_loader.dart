@@ -7,7 +7,8 @@ class JsonLoader {
     try {
       // 1. Dosya yolunun assets klasöründekiyle AYNI olduğundan emin olmalısın 
       // Eğer klasörün 'sample' değilse yolu 'assets/sample_summary.json' yapmalısın.
-      const String filePath = 'assets/sample_summary.json';
+    // json_loader.dart içinde bu satırı güncelle:
+      const String filePath = 'assets/sample/frontend_test_summary.json';
       
       // 2. Dosyayı ham metin (string) olarak oku 
       final String response = await rootBundle.loadString(filePath);

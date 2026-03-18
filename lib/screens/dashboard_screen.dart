@@ -8,7 +8,7 @@ class DashboardScreen extends StatefulWidget { // [3]
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
-
+ 
 class _DashboardScreenState extends State<DashboardScreen> {
   // Gelecekte gelecek olan JSON verisini bu değişken tutacak
   late Future<SessionSummary> _summaryFuture;
@@ -20,7 +20,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _summaryFuture = _loadData();
   }
 
-  // Yardımcı fonksiyon: Servisten ham veriyi alır ve modele dönüştürür
+  // Yardımcı fonksiyon: Servisten ham veriyi alır ve modele dönüştürür.
   Future<SessionSummary> _loadData() async {
     final jsonMap = await JsonLoader.loadSessionSummary();
     return SessionSummary.fromJson(jsonMap);
@@ -89,7 +89,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // Senin yazdığın o harika yardımcı metot (DRY prensibi)
   Widget _buildAnalysisCard(String title, String value, IconData icon) {
     return Card(
       elevation: 4,
