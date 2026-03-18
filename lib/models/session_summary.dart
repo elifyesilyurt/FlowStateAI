@@ -1,3 +1,5 @@
+// lib/models/session_summary.dart
+
 class SessionSummary {
   final String sessionId;
   final int durationSeconds;
@@ -15,15 +17,14 @@ class SessionSummary {
     required this.eventDensity,
   });
 
-  // JSON'dan nesne üreten fabrika metodu (Plana uygun)
   factory SessionSummary.fromJson(Map<String, dynamic> json) {
     return SessionSummary(
-      sessionId: json['session_id'],
-      durationSeconds: json['duration_seconds'],
-      totalEvents: json['total_events'],
-      keyboardEvents: json['keyboard_events'],
-      mouseEvents: json['mouse_events'],
-      eventDensity: json['event_density'].toDouble(),
+      sessionId: json['session_id'] ?? "unknown",
+      durationSeconds: json['duration_seconds'] ?? 0,
+      totalEvents: json['total_events'] ?? 0,
+      keyboardEvents: json['keyboard_events'] ?? 0,
+      mouseEvents: json['mouse_events'] ?? 0,
+      eventDensity: (json['event_density'] ?? 0.0).toDouble(),
     );
   }
 }
