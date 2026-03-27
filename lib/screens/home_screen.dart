@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-// Önemli: Gitmek istediğimiz ekranı buraya tanıtıyoruz
-import 'dashboard_screen.dart'; 
+// 1. ÖNEMLİ: Gideceğimiz ekranı (Sayaç Ekranı) buraya tanıtıyoruz
+import 'session_screen.dart'; 
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -8,55 +8,78 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Arka planı LOTR parşömen rengi yaptık [cite: 101]
+      // Arka planı LOTR parşömen rengi yaptık
       backgroundColor: const Color(0xFFF4E4BC), 
-      appBar: AppBar(
-        title: const Text("Yolculuk Paneli", style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.brown[900],
-        centerTitle: true, // Başlığı ortaya aldık, daha estetik durur
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Hoş geldin metni [cite: 6]
-            const Text(
-              "Hoş geldin, Elif", 
-              style: TextStyle(
-                fontSize: 28, 
-                fontWeight: FontWeight.bold, 
-                color: Colors.brown
-              ),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              "Yolculuğun kaldığı yerden devam ediyor...",
-              style: TextStyle(fontStyle: FontStyle.italic, color: Colors.brown),
-            ),
-            const SizedBox(height: 50),
-            
-            // Ana Buton: Maceraya Devam Et [cite: 7]
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.brown[900], // Buton rengi temaya uygun
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15), // Köşeleri hafif yuvarlattık
+      body: Container(
+        // Arka plana derinlik katmak için hafif bir degrade (gradient)
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.brown.shade200, const Color(0xFFF4E4BC)],
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Epik bir ikon (Kitap veya Macera simgesi)
+              const Icon(Icons.auto_stories, size: 80, color: Colors.brown),
+              const SizedBox(height: 20),
+              
+              const Text(
+                "FlowState AI", 
+                style: TextStyle(
+                  fontSize: 36, 
+                  fontWeight: FontWeight.w900, 
+                  color: Colors.brown,
+                  letterSpacing: 2.0,
+                  fontFamily: 'Georgia' // main.dart'ta tanımladığımız epik font
                 ),
               ),
-              onPressed: () {
-                // Mühendislik Dokunuşu: DashboardScreen'e geçiş [cite: 134-135]
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const DashboardScreen()),
-                );
-              },
-              child: const Text(
-                "MACERAYA DEVAM ET", 
-                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              const SizedBox(height: 10),
+              
+              const Text(
+                "Hoş geldin, Elif", 
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.brown),
               ),
-            ),
-          ],
+              const SizedBox(height: 10),
+              const Text(
+                "Yolculuğun kaldığı yerden devam ediyor...",
+                style: TextStyle(fontStyle: FontStyle.italic, color: Colors.brown, fontSize: 14),
+              ),
+              const SizedBox(height: 60),
+              
+              // ANA BUTON: Maceraya (Odaklanmaya) Başla
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.brown[900],
+                  padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                  elevation: 12,
+                  shadowColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+                onPressed: () {
+                  // MÜHENDİSLİK DOKUNUŞU: Kullanıcıyı önce sayaç sayfasına gönderiyoruz
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SessionScreen()),
+                  );
+                },
+                child: const Text(
+                  "MACERAYA DEVAM ET", 
+                  style: TextStyle(
+                    color: Colors.white, 
+                    fontSize: 18, 
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
