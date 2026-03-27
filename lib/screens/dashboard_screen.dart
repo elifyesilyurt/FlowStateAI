@@ -15,12 +15,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
+    // Veri yükleme işlemini başlatıyoruz [cite: 64-70]
     _summaryFuture = _loadData();
   }
 
   Future<SessionSummary> _loadData() async {
     final jsonMap = await JsonLoader.loadSessionSummary();
-    return SessionSummary.fromJson(jsonMap);
+    return SessionSummary.fromJson(jsonMap); // [cite: 61, 82]
   }
 
   @override
@@ -32,9 +33,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         elevation: 5,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Stack(
+      body: Stack( // [cite: 108-112, 115]
         children: [
-          // Arka Plan
+          // Arka Plan Katmanı
           Container(
             width: double.infinity,
             height: double.infinity,
@@ -70,12 +71,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       const SizedBox(height: 25),
                       
-                      // KARTLAR: Burada veriye göre renk değişimi mantığını başlattık
+                      // Analiz Kartları [cite: 16-17, 72-77, 89-94]
                       _buildAnalysisCard("Toplam Aktivite", "${summary.totalEvents} Olay", Icons.bolt),
                       _buildAnalysisCard("Klavye Kullanımı", "${summary.keyboardEvents} Tuş", Icons.keyboard),
                       _buildAnalysisCard("Fare Hareketleri", "${summary.mouseEvents} Tık", Icons.mouse),
                       
-                      // ÖZEL KART: Odak Yoğunluğu (Buna yoğunluk bilgisini gönderiyoruz)
+                      // Odak Yoğunluğu Kartı (Dinamik Renkli)
                       _buildAnalysisCard(
                         "Odak Yoğunluğu", 
                         summary.eventDensity.toStringAsFixed(2), 
@@ -94,7 +95,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           elevation: 8,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                         ),
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () => Navigator.pop(context), // [cite: 134-137]
                       ),
                     ],
                   ),
@@ -107,14 +108,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // YENİLİK: densityValue parametresi ekledik
   Widget _buildAnalysisCard(String title, String value, IconData icon, {double? densityValue}) {
-    // Mühendislik mantığı: Eğer yoğunluk 1.5'ten fazlaysa rengi Turuncu/Altın yap (Efsanevi Odak)
     bool isHighFocus = (densityValue != null && densityValue >= 1.5);
     Color themeColor = isHighFocus ? Colors.orange[800]! : Colors.brown[700]!;
 
     return Card(
-      elevation: isHighFocus ? 12 : 8, // Yüksek odakta kart daha çok parlasın (gölgesi artsın)
+      elevation: isHighFocus ? 12 : 8, 
       margin: const EdgeInsets.symmetric(vertical: 10),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
@@ -123,7 +122,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         leading: CircleAvatar(
-          backgroundColor: themeColor.withOpacity(0.1),
+          // GÜNCELLEME: withOpacity yerine withValues kullanıldı 
+          backgroundColor: themeColor.withValues(alpha: 0.1),
           child: Icon(icon, color: themeColor),
         ),
         title: Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.brown[900])),
@@ -135,6 +135,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: themeColor)
         ),
       ),
-    );
+    ); 
   }
 }
