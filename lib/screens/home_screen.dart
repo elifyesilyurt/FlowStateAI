@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-// 1. ÖNEMLİ: Gideceğimiz ekranı (Sayaç Ekranı) buraya tanıtıyoruz
-import 'session_screen.dart'; 
+import 'session_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -8,80 +7,84 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Arka planı LOTR parşömen rengi yaptık
-      backgroundColor: const Color(0xFFF4E4BC), 
-      body: Container(
-        // Arka plana derinlik katmak için hafif bir degrade (gradient)
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.brown.shade200, const Color(0xFFF4E4BC)],
+      backgroundColor: const Color(0xFFF4E4BC),
+      body: Stack( // 5. Gün: Stack yapısı [cite: 108, 115]
+        children: [
+          // Arka plan dokusu için hafif bir degrade
+          Container(
+            decoration: const BoxDecoration(
+              gradient: RadialGradient(
+                colors: [Color(0xFFF4E4BC), Color(0xFFDCC698)],
+                radius: 1.5,
+              ),
+            ),
           ),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Epik bir ikon (Kitap veya Macera simgesi)
-              const Icon(Icons.auto_stories, size: 80, color: Colors.brown),
-              const SizedBox(height: 20),
-              
-              const Text(
-                "FlowState AI", 
-                style: TextStyle(
-                  fontSize: 36, 
-                  fontWeight: FontWeight.w900, 
-                  color: Colors.brown,
-                  letterSpacing: 2.0,
-                  fontFamily: 'Georgia' // main.dart'ta tanımladığımız epik font
+          
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.auto_stories, size: 70, color: Colors.brown),
+                    const SizedBox(height: 20),
+                    const Text(
+                      "FlowState AI",
+                      style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.brown, fontFamily: 'Georgia'),
+                    ),
+                    const Text("Hoş geldin, Elif", style: TextStyle(fontSize: 18, color: Colors.brown)), // [cite: 6]
+                    const SizedBox(height: 40),
+
+                    // 1. GÜN EKSİĞİ: Yolculuk Günlüğü Özeti 
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 30),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(color: Colors.brown.withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _buildStatItem("42 Saat", "Toplam Süre"), // [cite: 8]
+                          _buildStatItem("12", "Günlük"), // [cite: 9]
+                        ],
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 50),
+
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.brown[900],
+                        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 18),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const SessionScreen()),
+                        );
+                      },
+                      child: const Text("MACERAYA DEVAM ET", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), // [cite: 7]
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 10),
-              
-              const Text(
-                "Hoş geldin, Elif", 
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.brown),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                "Yolculuğun kaldığı yerden devam ediyor...",
-                style: TextStyle(fontStyle: FontStyle.italic, color: Colors.brown, fontSize: 14),
-              ),
-              const SizedBox(height: 60),
-              
-              // ANA BUTON: Maceraya (Odaklanmaya) Başla
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.brown[900],
-                  padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
-                  elevation: 12,
-                  shadowColor: Colors.black,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-                onPressed: () {
-                  // MÜHENDİSLİK DOKUNUŞU: Kullanıcıyı önce sayaç sayfasına gönderiyoruz
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SessionScreen()),
-                  );
-                },
-                child: const Text(
-                  "MACERAYA DEVAM ET", 
-                  style: TextStyle(
-                    color: Colors.white, 
-                    fontSize: 18, 
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildStatItem(String value, String label) {
+    return Column(
+      children: [
+        Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.brown)),
+        Text(label, style: const TextStyle(fontSize: 12, color: Colors.brown)),
+      ],
     );
   }
 }
