@@ -15,7 +15,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    // Veri yükleme işlemini burada başlatıyoruz
     _summaryFuture = _loadData();
   }
 
@@ -35,7 +34,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       body: Stack(
         children: [
-          // 1. KATMAN: Arka Plan Dokusu
+          // Arka Plan
           Container(
             width: double.infinity,
             height: double.infinity,
@@ -48,20 +47,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           
-          // 2. KATMAN: Veri İçeriği
           FutureBuilder<SessionSummary>(
             future: _summaryFuture,
             builder: (context, snapshot) {
-              // Yükleme Aşaması
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator(color: Colors.brown));
-              } 
-              // Hata Aşaması
-              else if (snapshot.hasError || !snapshot.hasData) {
+              } else if (snapshot.hasError || !snapshot.hasData) {
                 return const Center(child: Text("Kadim kayıtlar okunamadı!"));
               }
 
               final summary = snapshot.data!;
+              
               return SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 child: Padding(
@@ -70,19 +66,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     children: [
                       const Text(
                         "Maceranın Analizi", 
-                        style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.brown, letterSpacing: 1.5)
+                        style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.brown, letterSpacing: 1.5, fontFamily: 'Georgia')
                       ),
                       const SizedBox(height: 25),
                       
-                      // Dinamik Verilerle Kartlar
+                      // KARTLAR: Burada veriye göre renk değişimi mantığını başlattık
                       _buildAnalysisCard("Toplam Aktivite", "${summary.totalEvents} Olay", Icons.bolt),
                       _buildAnalysisCard("Klavye Kullanımı", "${summary.keyboardEvents} Tuş", Icons.keyboard),
                       _buildAnalysisCard("Fare Hareketleri", "${summary.mouseEvents} Tık", Icons.mouse),
-                      _buildAnalysisCard("Odak Yoğunluğu", summary.eventDensity.toStringAsFixed(2), Icons.psychology),
+                      
+                      // ÖZEL KART: Odak Yoğunluğu (Buna yoğunluk bilgisini gönderiyoruz)
+                      _buildAnalysisCard(
+                        "Odak Yoğunluğu", 
+                        summary.eventDensity.toStringAsFixed(2), 
+                        Icons.psychology, 
+                        densityValue: summary.eventDensity
+                      ),
                       
                       const SizedBox(height: 40),
                       
-                      // Akışı Kapatan Buton
                       ElevatedButton.icon(
                         icon: const Icon(Icons.close, color: Colors.white),
                         label: const Text("PANELİ KAPAT", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -105,20 +107,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // Kart Oluşturma: Daha derin gölge ve epik hatlar
-  Widget _buildAnalysisCard(String title, String value, IconData icon) {
+  // YENİLİK: densityValue parametresi ekledik
+  Widget _buildAnalysisCard(String title, String value, IconData icon, {double? densityValue}) {
+    // Mühendislik mantığı: Eğer yoğunluk 1.5'ten fazlaysa rengi Turuncu/Altın yap (Efsanevi Odak)
+    bool isHighFocus = (densityValue != null && densityValue >= 1.5);
+    Color themeColor = isHighFocus ? Colors.orange[800]! : Colors.brown[700]!;
+
     return Card(
-      elevation: 8,
+      elevation: isHighFocus ? 12 : 8, // Yüksek odakta kart daha çok parlasın (gölgesi artsın)
       margin: const EdgeInsets.symmetric(vertical: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: isHighFocus ? BorderSide(color: Colors.orangeAccent, width: 2) : BorderSide.none,
+      ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         leading: CircleAvatar(
-          backgroundColor: Colors.brown[50],
-          child: Icon(icon, color: Colors.brown[900]),
+          backgroundColor: themeColor.withOpacity(0.1),
+          child: Icon(icon, color: themeColor),
         ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.brown)),
-        trailing: Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.orangeAccent)),
+        title: Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.brown[900])),
+        subtitle: isHighFocus && title == "Odak Yoğunluğu" 
+            ? const Text("Efsanevi Seviye!", style: TextStyle(color: Colors.orange, fontSize: 12, fontWeight: FontWeight.bold))
+            : null,
+        trailing: Text(
+          value, 
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: themeColor)
+        ),
       ),
     );
   }
