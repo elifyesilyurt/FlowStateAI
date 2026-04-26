@@ -1,187 +1,217 @@
-# FlowStateAI
+# FlowStateAI — Flutter Frontend
 
-> **Passive Behavioral Sensing for Cognitive Load Estimation**
+> Flutter client for the FlowStateAI cognitive load estimation system.
 
-FlowStateAI estimates cognitive load levels (**Low / Medium / High**) by passively analyzing keyboard and mouse interactions — no invasive sensors like EEG or eye-tracking required.
+FlowStateAI estimates how mentally busy you are — just from how you type and move your mouse. This repository contains the Flutter frontend that visualizes session data produced by the FlowStateAI backend.
 
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Flutter](https://img.shields.io/badge/flutter-3.x-02569B?logo=flutter)](https://flutter.dev/)
+[![Dart](https://img.shields.io/badge/dart-3.x-0175C2?logo=dart)](https://dart.dev/)
 [![Status](https://img.shields.io/badge/status-in%20development-orange)]()
+[![License](https://img.shields.io/badge/license-MIT-green)]()
+
+> **Note:** This repo contains only the Flutter frontend. The full project (Python backend + Flutter frontend) is developed collaboratively and lives in a separate private repository.
+
+---
+
+## Table of Contents
+
+- [How It Works](#how-it-works)
+- [Project Structure](#project-structure)
+- [Prerequisites](#prerequisites)
+- [Setup](#setup)
+- [Running the App](#running-the-app)
+- [Screens](#screens)
+- [Demo Mode](#demo-mode)
+- [Troubleshooting](#troubleshooting)
+- [Development Status](#development-status)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
 ## How It Works
 
+The backend (Python) collects keyboard and mouse events during a session and produces a `frontend_summary.json` file. This Flutter app reads that JSON and displays the cognitive load metrics on a dashboard.
+
 ```
-Keyboard & Mouse Events  →  Python Backend  →  frontend_summary.json  →  Flutter Dashboard
-        (pynput)            (data_collector)     (JSON contract)           (visualization)
+Python Backend  →  frontend_summary.json  →  json_loader.dart  →  Dashboard UI
 ```
 
-The backend captures real-time keyboard and mouse events via `pynput`, processes them through a thread-safe queue, and produces a `frontend_summary.json` at the end of each session. The Flutter app reads this JSON and displays cognitive load indicators on a dashboard. A demo can be run without a live backend using `sample_data/frontend_summary.json`.
+The app can also run in **demo mode** using a sample JSON file — no backend connection needed.
 
 ---
 
-## Repository Structure
+## Project Structure
 
 ```
-FlowStateAI/
-├── backend/
-│   ├── data_collector.py       # Real-time keyboard/mouse event collection
-│   ├── data_analysis.py        # Data quality and statistical analysis
-│   ├── flow_logger.py          # Logging infrastructure
-│   └── requirements.txt
+frontend/
+├── assets/
+│   └── sample/
+│       └── frontend_summary.json   # Sample data for demo mode
 │
-├── frontend/                   # Flutter application (in development)
+├── models/                         # Data models (SessionSummary, etc.)
 │
-├── docs/
-│   ├── integration_contract.md # Backend–Frontend JSON contract
-│   ├── library_usage_guide.md
-│   ├── data_collector_report.md
-│   └── README_TR.md            # Turkish documentation
+├── screens/
+│   ├── home_screen.dart            # Landing screen
+│   ├── session_screen.dart         # Active session view
+│   ├── dashboard_screen.dart       # Session results & metrics
+│   └── focus_page.dart             # Focus/cognitive load display
 │
-├── sample_data/
-│   ├── frontend_summary.json   # ⭐ Frontend demo file
-│   ├── sample_event.json
-│   ├── sample_summary.json
-│   └── README.md
+├── services/
+│   └── json_loader.dart            # Reads and parses frontend_summary.json
 │
-└── sessions/                   # Live session output files
-    └── YYYY-MM-DD/
+├── main.dart                       # App entry point
+├── pubspec.yaml
+└── pubspec.lock
 ```
+
+---
+
+## Prerequisites
+
+| Tool | Version |
+|------|---------|
+| Flutter | 3.x |
+| Dart | 3.x |
+| Git | any |
+
+Install Flutter: [flutter.dev/docs/get-started/install](https://flutter.dev/docs/get-started/install)
 
 ---
 
 ## Setup
 
-### Backend (Python)
-
 ```bash
 git clone https://github.com/elifyesilyurt/FlowStateAI.git
-cd FlowStateAI
+cd FlowStateAI/frontend
 
-python3 -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-
-pip install -r backend/requirements.txt
-```
-
-> **macOS:** Accessibility permission is required.  
-> System Preferences → Security & Privacy → Privacy → Accessibility → Add Terminal.
-
-### Frontend (Flutter)
-
-```bash
 flutter pub get
+```
+
+---
+
+## Running the App
+
+```bash
+# Run on connected device or emulator
 flutter run
+
+# Run on a specific platform
+flutter run -d chrome       # Web
+flutter run -d macos        # macOS desktop
+flutter run -d android      # Android emulator
 ```
 
 ---
 
-## Usage
+## Screens
 
-### Data Collection
+| Screen | File | Description |
+|--------|------|-------------|
+| Home | `home_screen.dart` | Landing screen, entry point |
+| Session | `session_screen.dart` | Active session monitoring view |
+| Dashboard | `dashboard_screen.dart` | Session results with metric cards |
+| Focus Page | `focus_page.dart` | Cognitive load level display |
 
-```bash
-# Runs until Ctrl+C
-python backend/data_collector.py
+**App flow:**
 
-# Fixed duration (seconds)
-python backend/data_collector.py --duration 180
-
-# Custom output directory
-python backend/data_collector.py --output-dir my_sessions
 ```
-
-Sessions are saved as `sessions/YYYY-MM-DD/session_HHMMSS.json`.
-
-### Data Analysis
-
-```bash
-python backend/data_analysis.py sessions/2026-01-30/session_sample_mixed.json
-```
-
-**Sample output:**
-```
-=== FlowStateAI Log Analysis ===
-Total lines       : 23
-Valid JSON         : 23  |  Invalid JSON: 0
-Keyboard events   : 14  (key_press: 7, key_release: 7)
-Mouse events      : 9   (move: 4, click: 4, scroll: 1)
-Keyboard ratio    : 0.61
-Mouse ratio       : 0.39
-Anomalies:
-  - Timestamp order violations : 0
-  - Extreme velocity (>50000)  : 0
-  - Negative dwell/flight times: 0
+Home Screen  →  Start Session
+    →  Session Screen  →  Stop
+        →  Dashboard (metrics from JSON)
+            →  Focus Page
 ```
 
 ---
 
-## Frontend — Demo Guide
+## Demo Mode
 
-To run the demo without a live backend, copy the sample file to Flutter assets:
+The app works without a live backend connection using the bundled sample file.
 
+Sample file location:
 ```
-sample_data/frontend_summary.json  →  Flutter: assets/sample/frontend_summary.json
+assets/sample/frontend_summary.json
 ```
 
-Fields displayed on the dashboard:
+Dashboard metrics pulled from the JSON:
 
-| Card | JSON Field | Example Value |
-|------|------------|---------------|
+| Card | JSON Field | Example |
+|------|------------|---------|
 | Total Events | `total_events` | 23 |
 | Keyboard Activity | `keyboard_events` | 14 |
 | Mouse Activity | `mouse_events` | 9 |
 | Duration | `duration_seconds` | 180 |
 | Flow Density | `event_density` | 0.13 |
 
-**Error handling:** If the demo file is missing, the app shows `"No data available"`; if the file is malformed, it shows `"Data format error"`.
-
-Full field definitions and contract: [`docs/integration_contract.md`](docs/integration_contract.md)
+**Error states:**
+- File not found → `"No data available"`
+- File malformed → `"Data format error"`
 
 ---
 
-## Demo Flow
+## Troubleshooting
 
+**`flutter pub get` fails**
+
+Make sure Flutter is installed and in your PATH:
+```bash
+flutter doctor
 ```
-Open App  →  Home Screen  →  Start Session
-    →  Session Screen  →  Stop
-        →  Dashboard (real session data shown on cards)
-            →  History Screen
+Fix any issues reported before running again.
+
+---
+
+**Assets not loading (`frontend_summary.json` not found)**
+
+Confirm the asset is declared in `pubspec.yaml`:
+```yaml
+flutter:
+  assets:
+    - assets/sample/frontend_summary.json
 ```
+Then run `flutter pub get` again.
 
 ---
 
-## Branch Structure
+**App not launching on macOS**
 
-| Branch | Owner | Contents |
-|--------|-------|----------|
-| `main` | Ümmügülsün | Infrastructure, configuration, documentation |
-| `backend-havin` | Havin | Stable data collection, summary generation |
-| `elif-frontend-teslim` | Elif | Flutter app, dashboard, JSON integration |
-
----
-
-## Team
-
-| Role | Person |
-|------|--------|
-| Backend Configuration & Coordination | Ümmügülsün |
-| Backend Core & Data Processing | Havin |
-| Frontend & Flutter Integration | Elif |
+macOS builds require Xcode. Run:
+```bash
+sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+sudo xcodebuild -runFirstLaunch
+```
 
 ---
 
 ## Development Status
 
-- [x] Real-time keyboard/mouse event collection
-- [x] Thread-safe data processing and logging
-- [x] `frontend_summary.json` generation
-- [x] Flutter dashboard base structure
-- [x] JSON integration (demo mode)
-- [ ] Cognitive load classification model (ML)
-- [ ] Live backend–frontend connection
-- [ ] Session history and comparison screen
+- [x] Home screen
+- [x] Session screen
+- [x] Dashboard screen with metric cards
+- [x] Focus page
+- [x] JSON loader service (`json_loader.dart`)
+- [x] Demo mode with sample data
+- [ ] Live backend connection
+- [ ] Session history screen
+- [ ] Cognitive load classification UI (Low / Medium / High)
+
+---
+
+## Contributing
+
+Pull requests are welcome. For major changes, please open an issue first.
+
+1. Fork the repo
+2. Create a feature branch (`git checkout -b feature/your-feature`)
+3. Commit your changes (`git commit -m 'feat: add your feature'`)
+4. Push to the branch (`git push origin feature/your-feature`)
+5. Open a Pull Request
+
+---
+
+## License
+
+MIT © 2026 Elif Yeşilyurt
 
 ---
 
