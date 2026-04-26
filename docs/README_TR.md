@@ -1,187 +1,217 @@
-# FlowStateAI
+# FlowStateAI — Flutter Frontend
 
-> **Pasif Davranışsal Algılama ile Bilişsel Yük Tahmini**
+> FlowStateAI bilişsel yük tahmin sisteminin Flutter istemcisi.
 
-FlowStateAI, klavye ve fare etkileşimlerini pasif olarak analiz ederek bilişsel yük seviyesini (**Düşük / Orta / Yüksek**) tahmin eden bir sistemdir. EEG veya göz takibi gibi invaziv yöntemler gerektirmez.
+FlowStateAI, ne kadar zihinsel olarak yoğun olduğunu yalnızca klavye ve fare kullanım şekillerine bakarak tahmin eder. Bu repo, FlowStateAI backend'inin ürettiği oturum verilerini görselleştiren Flutter frontend uygulamasını içerir.
 
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Flutter](https://img.shields.io/badge/flutter-3.x-02569B?logo=flutter)](https://flutter.dev/)
-[![Status](https://img.shields.io/badge/durum-geliştirme%20aşamasında-orange)]()
+[![Dart](https://img.shields.io/badge/dart-3.x-0175C2?logo=dart)](https://dart.dev/)
+[![Durum](https://img.shields.io/badge/durum-geliştirme%20aşamasında-orange)]()
+[![Lisans](https://img.shields.io/badge/lisans-MIT-green)]()
+
+> **Not:** Bu repo yalnızca Flutter frontend kodunu içerir. Projenin tamamı (Python backend + Flutter frontend) ekip olarak geliştirilmekte olup ayrı bir private repoda bulunmaktadır.
+
+---
+
+## İçindekiler
+
+- [Nasıl Çalışır?](#nasıl-çalışır)
+- [Proje Yapısı](#proje-yapısı)
+- [Gereksinimler](#gereksinimler)
+- [Kurulum](#kurulum)
+- [Uygulamayı Çalıştırma](#uygulamayı-çalıştırma)
+- [Ekranlar](#ekranlar)
+- [Demo Modu](#demo-modu)
+- [Sorun Giderme](#sorun-giderme)
+- [Geliştirme Durumu](#geliştirme-durumu)
+- [Katkıda Bulunma](#katkıda-bulunma)
+- [Lisans](#lisans)
 
 ---
 
 ## Nasıl Çalışır?
 
+Backend (Python), oturum sırasında klavye ve fare olaylarını toplayarak `frontend_summary.json` dosyası üretir. Flutter uygulaması bu JSON'ı okuyarak bilişsel yük metriklerini dashboard'da gösterir.
+
 ```
-Klavye & Fare Olayları  →  Python Backend  →  frontend_summary.json  →  Flutter Dashboard
-        (pynput)           (data_collector)      (JSON sözleşmesi)       (görselleştirme)
+Python Backend  →  frontend_summary.json  →  json_loader.dart  →  Dashboard UI
 ```
 
-Backend, `pynput` ile gerçek zamanlı klavye/fare olaylarını thread-safe queue üzerinden işler ve her oturum sonunda `frontend_summary.json` üretir. Flutter uygulaması bu JSON'ı okuyarak bilişsel yük göstergelerini dashboard'da gösterir. Canlı backend bağlantısı olmadan da `sample_data/frontend_summary.json` ile demo yapılabilir.
+Uygulama aynı zamanda **demo modunda** da çalışır — örnek JSON dosyası sayesinde backend bağlantısına gerek kalmaz.
 
 ---
 
-## Repo Yapısı
+## Proje Yapısı
 
 ```
-FlowStateAI/
-├── backend/
-│   ├── data_collector.py       # Gerçek zamanlı klavye/fare event toplama
-│   ├── data_analysis.py        # Veri kalitesi ve istatistik analizi
-│   ├── flow_logger.py          # Logging altyapısı
-│   └── requirements.txt
+frontend/
+├── assets/
+│   └── sample/
+│       └── frontend_summary.json   # Demo modu için örnek veri
 │
-├── frontend/                   # Flutter uygulaması (geliştirme aşamasında)
+├── models/                         # Veri modelleri (SessionSummary vb.)
 │
-├── docs/
-│   ├── integration_contract.md # Backend–Frontend JSON sözleşmesi
-│   ├── library_usage_guide.md
-│   ├── data_collector_report.md
-│   └── README_TR.md            # Bu dosya
+├── screens/
+│   ├── home_screen.dart            # Giriş ekranı
+│   ├── session_screen.dart         # Aktif oturum görünümü
+│   ├── dashboard_screen.dart       # Oturum sonuçları ve metrikler
+│   └── focus_page.dart             # Odaklanma / bilişsel yük gösterimi
 │
-├── sample_data/
-│   ├── frontend_summary.json   # ⭐ Frontend demo dosyası
-│   ├── sample_event.json
-│   ├── sample_summary.json
-│   └── README.md
+├── services/
+│   └── json_loader.dart            # frontend_summary.json okuma ve parse
 │
-└── sessions/                   # Canlı oturumların çıktısı
-    └── YYYY-MM-DD/
+├── main.dart                       # Uygulama giriş noktası
+├── pubspec.yaml
+└── pubspec.lock
 ```
+
+---
+
+## Gereksinimler
+
+| Araç | Versiyon |
+|------|----------|
+| Flutter | 3.x |
+| Dart | 3.x |
+| Git | herhangi |
+
+Flutter kurulumu: [flutter.dev/docs/get-started/install](https://flutter.dev/docs/get-started/install)
 
 ---
 
 ## Kurulum
 
-### Backend (Python)
-
 ```bash
 git clone https://github.com/elifyesilyurt/FlowStateAI.git
-cd FlowStateAI
+cd FlowStateAI/frontend
 
-python3 -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-
-pip install -r backend/requirements.txt
-```
-
-> **macOS:** Accessibility izni gereklidir.  
-> System Preferences → Security & Privacy → Privacy → Accessibility → Terminal'i ekle.
-
-### Frontend (Flutter)
-
-```bash
 flutter pub get
+```
+
+---
+
+## Uygulamayı Çalıştırma
+
+```bash
+# Bağlı cihaz veya emülatörde çalıştır
 flutter run
+
+# Belirli bir platformda çalıştır
+flutter run -d chrome       # Web
+flutter run -d macos        # macOS masaüstü
+flutter run -d android      # Android emülatör
 ```
 
 ---
 
-## Kullanım
+## Ekranlar
 
-### Veri Toplama
+| Ekran | Dosya | Açıklama |
+|-------|-------|----------|
+| Home | `home_screen.dart` | Giriş ekranı |
+| Session | `session_screen.dart` | Aktif oturum izleme görünümü |
+| Dashboard | `dashboard_screen.dart` | Metrik kartlarıyla oturum sonuçları |
+| Focus Page | `focus_page.dart` | Bilişsel yük seviyesi gösterimi |
 
-```bash
-# Ctrl+C ile durdurana kadar çalışır
-python backend/data_collector.py
+**Uygulama akışı:**
 
-# Belirli süre (saniye)
-python backend/data_collector.py --duration 180
-
-# Farklı çıktı klasörü
-python backend/data_collector.py --output-dir my_sessions
 ```
-
-Veriler `sessions/YYYY-MM-DD/session_HHMMSS.json` formatında kaydedilir.
-
-### Veri Analizi
-
-```bash
-python backend/data_analysis.py sessions/2026-01-30/session_sample_mixed.json
-```
-
-**Örnek çıktı:**
-```
-=== FlowStateAI Log Analysis ===
-Total lines       : 23
-Valid JSON         : 23  |  Invalid JSON: 0
-Keyboard events   : 14  (key_press: 7, key_release: 7)
-Mouse events      : 9   (move: 4, click: 4, scroll: 1)
-Keyboard ratio    : 0.61
-Mouse ratio       : 0.39
-Anomalies:
-  - Timestamp order violations : 0
-  - Extreme velocity (>50000)  : 0
-  - Negative dwell/flight times: 0
+Home Ekranı  →  Start Session
+    →  Session Ekranı  →  Stop
+        →  Dashboard (JSON'dan metrikler)
+            →  Focus Page
 ```
 
 ---
 
-## Frontend — Demo Rehberi
+## Demo Modu
 
-Backend bağlantısı olmadan demo yapmak için sample dosyasını Flutter assets klasörüne kopyalamak yeterlidir:
+Uygulama, canlı backend bağlantısı olmadan yerleşik örnek dosyayla çalışır.
 
+Örnek dosya konumu:
 ```
-sample_data/frontend_summary.json  →  Flutter: assets/sample/frontend_summary.json
+assets/sample/frontend_summary.json
 ```
 
-Dashboard'da gösterilen alanlar:
+JSON'dan okunan dashboard metrikleri:
 
-| Kart | JSON Alanı | Örnek Değer |
-|------|------------|-------------|
+| Kart | JSON Alanı | Örnek |
+|------|------------|-------|
 | Total Events | `total_events` | 23 |
 | Keyboard Activity | `keyboard_events` | 14 |
 | Mouse Activity | `mouse_events` | 9 |
 | Duration | `duration_seconds` | 180 |
 | Flow Density | `event_density` | 0.13 |
 
-**Hata durumları:** Demo dosyası bulunamazsa `"No data available"`, dosya bozuksa `"Data format error"` gösterilir.
-
-Alan tanımları ve tam sözleşme: [`docs/integration_contract.md`](integration_contract.md)
+**Hata durumları:**
+- Dosya bulunamazsa → `"No data available"`
+- Dosya bozuksa → `"Data format error"`
 
 ---
 
-## Demo Akışı
+## Sorun Giderme
 
+**`flutter pub get` başarısız oluyor**
+
+Flutter'ın kurulu ve PATH'te olduğundan emin ol:
+```bash
+flutter doctor
 ```
-Uygulama Aç  →  Home Ekranı  →  Start Session
-    →  Session Ekranı  →  Stop
-        →  Dashboard (JSON verileri kartlarda görünür)
-            →  History Ekranı
+Çıkan sorunları giderdikten sonra tekrar dene.
+
+---
+
+**Assets yüklenmiyor (`frontend_summary.json` bulunamıyor)**
+
+`pubspec.yaml`'da asset'in tanımlı olduğunu kontrol et:
+```yaml
+flutter:
+  assets:
+    - assets/sample/frontend_summary.json
 ```
+Ardından `flutter pub get` komutunu tekrar çalıştır.
 
 ---
 
-## Branch Yapısı
+**Uygulama macOS'ta açılmıyor**
 
-| Branch | Sahibi | İçerik |
-|--------|--------|--------|
-| `main` | Ümmügülsün | Altyapı, yapılandırma, dokümantasyon |
-| `backend-havin` | Havin | Stabil veri toplama, summary üretimi |
-| `elif-frontend-teslim` | Elif | Flutter uygulaması, dashboard, JSON entegrasyonu |
-
----
-
-## Ekip
-
-| Rol | Kişi |
-|-----|------|
-| Backend Yapılandırma & Koordinasyon | Ümmügülsün |
-| Backend Çekirdek & Veri İşleme | Havin |
-| Frontend & Flutter Entegrasyonu | Elif |
+macOS build'i Xcode gerektirir:
+```bash
+sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+sudo xcodebuild -runFirstLaunch
+```
 
 ---
 
 ## Geliştirme Durumu
 
-- [x] Gerçek zamanlı klavye/fare event toplama
-- [x] Thread-safe veri işleme ve logging
-- [x] `frontend_summary.json` üretimi
-- [x] Flutter dashboard temel yapısı
-- [x] JSON entegrasyonu (demo modu)
-- [ ] Bilişsel yük sınıflandırma modeli (ML)
-- [ ] Canlı backend–frontend bağlantısı
-- [ ] Oturum geçmişi ve karşılaştırma ekranı
+- [x] Home ekranı
+- [x] Session ekranı
+- [x] Dashboard ekranı (metrik kartları)
+- [x] Focus page
+- [x] JSON loader servisi (`json_loader.dart`)
+- [x] Örnek veriyle demo modu
+- [ ] Canlı backend bağlantısı
+- [ ] Oturum geçmişi ekranı
+- [ ] Bilişsel yük sınıflandırma UI (Düşük / Orta / Yüksek)
+
+---
+
+## Katkıda Bulunma
+
+Pull request'ler kabul edilir. Büyük değişiklikler için önce bir issue aç.
+
+1. Repo'yu fork'la
+2. Feature branch oluştur (`git checkout -b feature/ozellik-adi`)
+3. Değişikliklerini commit'le (`git commit -m 'feat: özellik ekle'`)
+4. Branch'e push'la (`git push origin feature/ozellik-adi`)
+5. Pull Request aç
+
+---
+
+## Lisans
+
+MIT © 2026 Elif Yeşilyurt
 
 ---
 
