@@ -1,12 +1,12 @@
 # FlowStateAI
 
-> **Passive Behavioral Sensing for Cognitive Load Estimation**
+> **Pasif Davranışsal Algılama ile Bilişsel Yük Tahmini**
 
-FlowStateAI, kullanıcının klavye ve fare etkileşimlerini pasif olarak analiz ederek bilişsel yük seviyesini (**Düşük / Orta / Yüksek**) tahmin eden bir sistemdir. EEG veya göz takibi gibi invaziv yöntemler yerine yalnızca davranışsal sinyal kullanılır.
+FlowStateAI, klavye ve fare etkileşimlerini pasif olarak analiz ederek bilişsel yük seviyesini (**Düşük / Orta / Yüksek**) tahmin eden bir sistemdir. EEG veya göz takibi gibi invaziv yöntemler gerektirmez.
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Flutter](https://img.shields.io/badge/flutter-3.x-02569B?logo=flutter)](https://flutter.dev/)
-[![Status](https://img.shields.io/badge/status-in%20development-orange)]()
+[![Status](https://img.shields.io/badge/durum-geliştirme%20aşamasında-orange)]()
 
 ---
 
@@ -37,7 +37,7 @@ FlowStateAI/
 │   ├── integration_contract.md # Backend–Frontend JSON sözleşmesi
 │   ├── library_usage_guide.md
 │   ├── data_collector_report.md
-│   └── README_TR.md
+│   └── README_TR.md            # Bu dosya
 │
 ├── sample_data/
 │   ├── frontend_summary.json   # ⭐ Frontend demo dosyası
@@ -119,7 +119,7 @@ Anomalies:
 
 ## Frontend — Demo Rehberi
 
-Backend bağlantısı olmadan demo yapmak için sadece şu adım yeterlidir:
+Backend bağlantısı olmadan demo yapmak için sample dosyasını Flutter assets klasörüne kopyalamak yeterlidir:
 
 ```
 sample_data/frontend_summary.json  →  Flutter: assets/sample/frontend_summary.json
@@ -137,7 +137,7 @@ Dashboard'da gösterilen alanlar:
 
 **Hata durumları:** Demo dosyası bulunamazsa `"No data available"`, dosya bozuksa `"Data format error"` gösterilir.
 
-Alan tanımları ve tam sözleşme: [`docs/integration_contract.md`](docs/integration_contract.md)
+Alan tanımları ve tam sözleşme: [`docs/integration_contract.md`](integration_contract.md)
 
 ---
 
@@ -185,4 +185,4 @@ Uygulama Aç  →  Home Ekranı  →  Start Session
 
 ---
 
-> [Türkçe Dokümantasyon](docs/README_TR.md)
+> 🇬🇧 [English Documentation](../README.md)
